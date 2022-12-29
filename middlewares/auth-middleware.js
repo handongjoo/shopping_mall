@@ -2,7 +2,7 @@
 // 1. jwt
 // 2. 모델
 const jwt = require("jsonwebtoken");
-const User = require("../models/user.js");
+const {User} = require("../models");
 
 module.exports = async (req, res, next) => {
     try{
@@ -17,14 +17,14 @@ module.exports = async (req, res, next) => {
     console.log([authType, authToken]);
 
     if (authType !== "Bearer" || !authToken) {
-        res.status(400).json({
+        res.status(401).json({
             errorMessage: "로그인 후 사용 가능합니다."
         });
     }
 
     //jwt가 유효한가 복호화 및 검증
     const {userId} = jwt.verify(authToken, "sparta-secret-key");
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     // res.locals.user : DB에 가지 않고도 변수로 따로 저장해 둬서 데이터 가져옴
     res.locals.user = user;
     console.log(user);

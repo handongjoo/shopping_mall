@@ -1,7 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
-const User = require('./models/user.js');
+const { Op } = require("sequelize");
+const { User } = require("./models");
 
 mongoose.connect("mongodb://127.0.0.1:27017/spa_mall", {
   useNewUrlParser: true,
@@ -28,7 +29,9 @@ router.post('/users', async (req, res) => {
     // 2. email 및 nickname에 해당하는 사용자가 있는가?
 
     const existUser = await User.findOne({
-      $or: [{email: email}, {nickname: nickname}]
+      where: {
+        [Op.or]: [{ email }, { nickname }],
+      },
     });
 
     if (existUser) {
@@ -50,11 +53,16 @@ router.post('/users', async (req, res) => {
   
 });
 
+
+//로그인 API
 router.post('/auth', async (req, res) =>{
   try{
     const {email, password} = req.body;
 
-    const user = await User.findOne({email});
+    const user = await User.findOne({
+      where: {email}
+    });
+    
   if (!user || password !== user.password) {
     return res.status(400).json({
       errorMessage: "사용자가 존재하지 않거나 비밀번호가 틀렸습니다."
