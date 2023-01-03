@@ -15,14 +15,14 @@ const app = express();
 const router = express.Router();
 
 // 회원가입 API
-router.post('/users', async (req, res) => {
-  try{
-    const {nickname, email, password, confirmPassword} = req.body;
+router.post("/users", async (req, res) => {
+  try {
+    const { nickname, email, password, confirmPassword } = req.body;
 
     // 1. 패스워드가 일치하는가
     if (password !== confirmPassword) {
       return res.status(400).json({
-        errorMessage: "패스워드가 일치하지 않습니다."
+        errorMessage: "패스워드가 일치하지 않습니다.",
       });
     }
 
@@ -36,56 +36,50 @@ router.post('/users', async (req, res) => {
 
     if (existUser) {
       return res.status(400).json({
-        errorMessage: "중복된 email 혹은 닉네임입니다."
+        errorMessage: "중복된 email 혹은 닉네임입니다.",
       });
-    };
+    }
     // 3. DB에 데이터 삽입
 
-    return await User.create({nickname, email, password}),
-    res.status(201).json({});
-    
-  } catch(error) {
-
+    return (
+      await User.create({ nickname, email, password }), res.status(201).json({})
+    );
+  } catch (error) {
     console.error(error);
 
-    res.status(500).json({message: error.Message})
+    res.status(500).json({ message: error.Message });
   }
-  
 });
 
-
 //로그인 API
-router.post('/auth', async (req, res) =>{
-  try{
-    const {email, password} = req.body;
+router.post("/auth", async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
     const user = await User.findOne({
-      where: {email}
+      where: { email },
     });
-    
-  if (!user || password !== user.password) {
-    return res.status(400).json({
-      errorMessage: "사용자가 존재하지 않거나 비밀번호가 틀렸습니다."
-    })
-  }
-  const token = jwt.sign({userId:user._id}, "sparta-secret-key")
 
-  return res.status(200).json({
-    "token": token
-  })
+    if (!user || password !== user.password) {
+      return res.status(400).json({
+        errorMessage: "사용자가 존재하지 않거나 비밀번호가 틀렸습니다.",
+      });
+    }
+    const token = jwt.sign({ userId: user._id }, "sparta-secret-key");
 
-  } catch(error) {
-
+    return res.status(200).json({
+      token: token,
+    });
+  } catch (error) {
     console.error(error);
 
-    res.status(500).json({message: error.Message})
+    res.status(500).json({ message: error.Message });
   }
-  
-})
+});
 
 const authMiddleware = require("./middlewares/auth-middleware.js");
-router.get('/users/me', authMiddleware, async (req, res) => {
-  res.send({user: res.locals.user});
+router.get("/users/me", authMiddleware, async (req, res) => {
+  res.send({ user: res.locals.user });
 });
 
 app.use("/api", express.urlencoded({ extended: false }), router);
